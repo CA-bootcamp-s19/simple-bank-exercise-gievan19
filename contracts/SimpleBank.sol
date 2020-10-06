@@ -3,7 +3,7 @@
     Breaking changes from 0.5 to 0.6 can be found here: 
     https://solidity.readthedocs.io/en/v0.6.12/060-breaking-changes.html
 */
-
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.6.12;
 
 contract SimpleBank {
@@ -66,6 +66,7 @@ contract SimpleBank {
     /// @return The users enrolled status
     // Emit the appropriate event
     function enroll() public returns (bool){
+        enrolled[msg.sender] = true;
         emit LogEnrolled(msg.sender);
         return enrolled[msg.sender];
     }
@@ -79,12 +80,9 @@ contract SimpleBank {
     function deposit() public payable returns (uint) {
         /* Add the amount to the user's balance, call the event associated with a deposit,
           then return the balance of the user */
-         balances[msg.sender] += msg.value;
-        if enrolled[msg.sender] == true
-        {
-            emit LogDepositMade(msg.sender, msg.value);
-        }
-        
+        require(enrolled[msg.sender] == true);
+        balances[msg.sender] += msg.value;
+        emit LogDepositMade(msg.sender, msg.value);
         return balances[msg.sender];
     }
 
@@ -98,13 +96,11 @@ contract SimpleBank {
            Subtract the amount from the sender's balance, and try to send that amount of ether
            to the user attempting to withdraw. 
            return the user's balance.*/
-        if (withdrawAmount <= balances[msg.sender]) {
-            balances[msg.sender] -= withdrawAmount;
-            msg.sender.transfer(withdrawAmount);
-            emit LogWithdrawal(msg.sender,withdrawAmount,balances[msg.sender]);
-        }
+        require(withdrawAmount <= balances[msg.sender]);
+        balances[msg.sender] -= withdrawAmount;
+        msg.sender.transfer(withdrawAmount);
+        emit LogWithdrawal(msg.sender,withdrawAmount,balances[msg.sender]);
         return balances[msg.sender];
-   
-    }
 
+   }
 }
